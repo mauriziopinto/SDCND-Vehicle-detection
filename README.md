@@ -55,10 +55,6 @@ Some example images for testing your pipeline on single frames are located in th
 [h6]: ./output_images/heatmap/test6.jpg.png
 [l6]: ./output_images/labels/test6.jpg.png
 [f6]: ./output_images/final/test6.jpg.png
-[image4]: ./examples/sliding_window.jpg
-[image5]: ./examples/bboxes_and_heat.png
-[image6]: ./examples/labels_map.png
-[image7]: ./examples/output_bboxes.png
 [video1]: ./project_video.mp4
 
 ## [Rubric](https://review.udacity.com/#!/rubrics/513/view) Points
@@ -349,7 +345,7 @@ Some test videos are available:
 
 * [original test video](./test_video.mp4)
 * [hot windows](./videos/bboxes.mp4)
-* [heatmap](./videos/bboxes.mp4)
+* [heatmap](./videos/heatmap.mp4)
 * [final](./videos/out_test_video.mp4)
 
 #### Bonus

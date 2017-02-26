@@ -275,13 +275,10 @@ for xb in range(nxsteps):
 I used different scales to resize the image:
 
 ```python
-hot_windows = detect_vehicles(image, 0.9)
-hot_windows.extend(detect_vehicles(image, 1.0))
-hot_windows.extend(detect_vehicles(image, 1.3))
-hot_windows.extend(detect_vehicles(image, 1.7))
+hot_windows = detect_vehicles(image, 1.0)
+hot_windows.extend(detect_vehicles(image, 1.5))
 hot_windows.extend(detect_vehicles(image, 2.0))
-hot_windows.extend(detect_vehicles(image, 2.3))
-hot_windows.extend(detect_vehicles(image, 2.5))
+hot_windows.extend(detect_vehicles(image, 2.5)) 
 ```
 
 

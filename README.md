@@ -333,7 +333,7 @@ def process_single(image):
 	hot_windows = detect_vehicles(image, 1.0)
 	hot_windows.extend(detect_vehicles(image, 1.5))
 	hot_windows.extend(detect_vehicles(image, 2.0))
-	hot_windows.extend(detect_vehicles(image, 2.5))
+	hot_windows.extend(detect_vehicles(image, 2.5)) 
 	
 	heatmap = add_heat(heatmap=heat, bbox_list=hot_windows)
 	heatmap = apply_threshold(heatmap, 2)

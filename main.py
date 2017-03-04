@@ -17,10 +17,12 @@ from skimage.feature import hog
 from sklearn.externals import joblib
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
-from sklearn.svm import LinearSVC
-from sklearn.svm import SVC
+#from sklearn.svm import LinearSVC
+#from sklearn.svm import SVC
 from scipy.ndimage.measurements import label
 from moviepy.editor import VideoFileClip
+
+from sklearn.neural_network import MLPClassifier
 
 def get_hog_features(img, orient, pix_per_cell, cell_per_block,
 					 vis=False, feature_vec=True):
@@ -366,9 +368,9 @@ def search_windows(img, windows, clf, scaler, color_space='RGB',
 		# 5) Scale extracted features to be fed to classifier
 		test_features = scaler.transform(np.array(features).reshape(1, -1))
 		# 6) Predict using your classifier
-		prediction = clf.predict(test_features)
+		prediction = clf.decision_function(test_features) #clf.predict(test_features)
 		# 7) If positive (prediction == 1) then save the window
-		if prediction == 1: #prediction > 0.6: #
+		if prediction > 0.65: #prediction == 1: # #
 			on_windows.append(window)
 	# 8) Return windows for positive detections
 	#print(time.clock() - t1)
@@ -376,9 +378,9 @@ def search_windows(img, windows, clf, scaler, color_space='RGB',
 
 
 
-def train_svm():
+def train():
 	"""
-	Train a SVM model and save the model and the scaler on disk
+	Train a model and save the model and the scaler on disk
 
 	Args:
 		
@@ -428,19 +430,20 @@ def train_svm():
 		  'pixels per cell and', cell_per_block, 'cells per block')
 	print('Feature vector length:', len(X_train[0]))
 	# Use a linear SVC
-	svc = LinearSVC()
+	#svc = LinearSVC()
+	mlp = MLPClassifier()
 	# svc = SVC(C=1.0, probability=True)
 	# Check the training time for the SVC
 	t = time.time()
-	svc.fit(X_train, y_train)
+	mlp.fit(X_train, y_train)
 	t2 = time.time()
-	print(round(t2 - t, 2), 'Seconds to train SVC...')
-	# Check the score of the SVC
-	print('Test Accuracy of SVC = ', round(svc.score(X_test, y_test), 4))
+	print(round(t2 - t, 2), 'Seconds to train model...')
+	# Check the score of the model
+	print('Test Accuracy of MLP model = ', round(mlp.score(X_test, y_test), 4))
 	# Check the prediction time for a single sample
 	t = time.time()
-	filename = "svc.pkl"
-	joblib.dump(svc, filename)
+	filename = "mlp.pkl"
+	joblib.dump(mlp, filename)
 	pickle.dump(X_scaler,open("scaler.pkl","wb"))
 
 
@@ -478,6 +481,7 @@ def apply_threshold(heatmap, threshold):
 		
 	"""
 	# Zero out pixels below the threshold
+ 
 	heatmap[heatmap <= threshold] = 0
 	# Return thresholded map
 	return heatmap
@@ -578,11 +582,11 @@ def process_single(image):
 	heatmap = apply_threshold(heatmap, 2)
 	
 	labels = label(heat)
-	window_img = draw_boxes(draw_img, hot_windows, color=(255, 138, 0), thick=1)
+	#window_img = draw_boxes(draw_img, hot_windows, color=(255, 138, 0), thick=1)
 	window_img = draw_labeled_bboxes(draw_img, labels, color=(12, 138, 255), thick=2)
 	
 	# keep track of previous heatmaps, in order to be able to eliminate false positives
-	heat = apply_threshold(heatmap/2, 6)
+	heat = apply_threshold(heatmap/1.5, 1)
 	
 	return window_img
 
@@ -710,8 +714,8 @@ orient = 9  # HOG orientations
 pix_per_cell = 8  # HOG pixels per cell
 cell_per_block = 2  # HOG cells per block
 hog_channel = "ALL"  # Can be 0, 1, 2, or "ALL"
-spatial_size = (16, 16)  # Spatial binning dimensions
-hist_bins = 16  # Number of histogram bins
+spatial_size = (32, 32)  # Spatial binning dimensions
+hist_bins = 32  # Number of histogram bins
 spatial_feat = True  # Spatial features on or off
 hist_feat = True  # Histogram features on or off
 hog_feat = True  # HOG features on or off
@@ -733,13 +737,13 @@ if __name__ == "__main__":
 	if mode == "--train":
 		print("Training mode selected.")
 		print("Running...")
-		train_svm()
+		train()
 		print("Completed.")
 	elif mode == "--images":
 		print("Test images mode selected.")
 		print("Running...")
 		X_scaler = pickle.load(open("scaler.pkl", "rb"))
-		svm = joblib.load("svc.pkl")
+		svm = joblib.load("mlp.pkl")
 		images = glob.glob("test_images/*")
 		for file in images:
 			print("Processing", file)
@@ -750,14 +754,15 @@ if __name__ == "__main__":
 		print("Video mode selected")
 		print("Running...")
 		X_scaler = pickle.load(open("scaler.pkl", "rb"))
-		svm = joblib.load("svc.pkl")
-		#output = process_video('./out_test_video.mp4', './test_video.mp4')
-		output = process_video('./out_project_video.mp4', './project_video.mp4')
+		svm = joblib.load("mlp.pkl")
+		#output = process_video('./test_out.mp4', './test_video.mp4')
+		#1#output = process_video('./out_project_video.mp4', './project_video.mp4')
+		output = process_video('./combined.mp4', './carnd_p4_output.mp4')
 
 		print("Completed.")
 	elif mode == "--help":
 		print("\n---------------------------------\nUdacity SDCND - Vehicle detection\n---------------------------------\n")
-		print(" - --train : trains a LinearSVC model and saves model and scaler to disk")
+		print(" - --train : trains a neural network model and saves model and scaler to disk")
 		print(" - --images : executes vehicle detection on the images in the test_images folder")
 		print(" - --video : executed vehicle detection on the project_video.mp4 file")
 		print(" - --help : display this help\n\n")

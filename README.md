@@ -23,8 +23,8 @@ Some example images for testing your pipeline on single frames are located in th
 
 
 [//]: # (Image References)
-[image1]: ./datasets/vehicles/GTI_MiddleClose/image0089.png
-[image2]: ./datasets/non-vehicles/GTI/image52.png
+[image1]: ./examples/car.png
+[image2]: ./examples/nocar.png
 [t1]: ./test_images/test1.jpg
 [w1]: ./output_images/hotwindows/test1.jpg.png
 [h1]: ./output_images/heatmap/test1.jpg.png
@@ -97,7 +97,7 @@ def get_hog_features(img, orient, pix_per_cell, cell_per_block,
 		return features
 ```  
 
-The `get_hog_features` function relies on the cv2.HOGDescriptor functionality: all the images in the folders datasets/vehicles and datasets/non-vehicles have been processed with the `get_hog_features` method in order to train a linear SVM classifier (LinearSVC)
+The `get_hog_features` function relies on the cv2.HOGDescriptor functionality: all the images in the folders datasets/vehicles and datasets/non-vehicles have been processed with the `get_hog_features` method in order to train a Multi-layer Perceptron classifier (MLPClassifier)
 
 Here is an example of one of each of the `vehicle`(8792 samples) and `non-vehicle` (8968 samples) classes:
 
@@ -150,8 +150,8 @@ There are many parameters that can influence the HOG feature extraction:
 * pix_per_cell = 8  # HOG pixels per cell
 * cell_per_block = 2  # HOG cells per block
 * hog_channel = "ALL"  # Can be 0, 1, 2, or "ALL"
-* spatial_size = (16, 16)  # Spatial binning dimensions
-* hist_bins = 16  # Number of histogram bins
+* spatial_size = (32, 32)  # Spatial binning dimensions
+* hist_bins = 32  # Number of histogram bins
 * spatial_feat = True  # Spatial features on or off
 * hist_feat = True  # Histogram features on or off
 * hog_feat = True  # HOG features on or off
@@ -161,12 +161,12 @@ I tried many combinations on the video "test_video.mp4" and selected a combinati
 
 ####3. Describe how (and identify where in your code) you trained a classifier using your selected HOG features (and color features if you used them).
 
-A linear SVM model is built in the `train_svm()` function:
+A MLP classifier model is built in the `train()` function:
 
 ```python
-def train_svm():
+def train():
 	"""
-	Train a SVM model and save the model and the scaler on disk
+	Train a model and save the model and the scaler on disk
 
 	Args:
 		
@@ -216,29 +216,31 @@ def train_svm():
 		  'pixels per cell and', cell_per_block, 'cells per block')
 	print('Feature vector length:', len(X_train[0]))
 	# Use a linear SVC
-	svc = LinearSVC()
+	#svc = LinearSVC()
+	mlp = MLPClassifier()
 	# svc = SVC(C=1.0, probability=True)
 	# Check the training time for the SVC
 	t = time.time()
-	svc.fit(X_train, y_train)
+	mlp.fit(X_train, y_train)
 	t2 = time.time()
-	print(round(t2 - t, 2), 'Seconds to train SVC...')
-	# Check the score of the SVC
-	print('Test Accuracy of SVC = ', round(svc.score(X_test, y_test), 4))
+	print(round(t2 - t, 2), 'Seconds to train model...')
+	# Check the score of the model
+	print('Test Accuracy of MLP model = ', round(mlp.score(X_test, y_test), 4))
 	# Check the prediction time for a single sample
 	t = time.time()
-	filename = "svc.pkl"
-	joblib.dump(svc, filename)
+	filename = "mlp.pkl"
+	joblib.dump(mlp, filename)
 	pickle.dump(X_scaler,open("scaler.pkl","wb"))
 ```
 
 Notes:
 
-* the lenght of the features vector is 6108
+* the length of the features vector is 8460
 * in order to train the model, please execute the python program with the `--train` parameter (`python main.py --train`)
 * training of a LinearSVC model is very fast, but it generates many false positives during the video processing
-* training of a SVC model that returns probability estimates (sklearn.svm.SVC) can greatly reduce the false positives, but both training time and predictions are very slow. I therefore decided to keep using the LinearSVC model and use other methods to reject the false positives
-* the SVC model and the scaler function are persisted to disk, to be used for the prediction stage (`python main.py --video` or `python main.py --images`)
+* training of a SVC model that returns probability estimates (sklearn.svm.SVC) can greatly reduce the false positives, but both training time and predictions are very slow
+* MLPClassifier proved to be a good trade-off between number of false positives and performances
+* the model and the scaler function are persisted to disk, to be used for the prediction stage (`python main.py --video` or `python main.py --images`)
 
 ###Sliding Window Search
 
@@ -259,7 +261,7 @@ This version applies the HOG features extraction for each window during the slid
 
 ##### Version 2
 
-This version, provided at a later stage in the Udacity course, is more efficient. The sliding window is implemented starting from line 675 in main.py:
+This version, provided at a later stage in the Udacity course, is more efficient. The sliding window is implemented starting from line 676 in main.py:
 
 ```python
 for xb in range(nxsteps):
@@ -309,7 +311,7 @@ I used the approach suggested during the Udacity course and I added something ve
 * I then used `scipy.ndimage.measurements.label()` to identify individual blobs in the heatmap
 * I then assumed each blob corresponded to a vehicle
 * I constructed bounding boxes to cover the area of each blob detected
-* I applied a very simple transformation to the global heatmap, so that values coming from previous frame would become less important in the detection of the bounding box `heat = apply_threshold(heatmap/2, 6)`
+* I applied a very simple transformation to the global heatmap, so that values coming from previous frame would become less important in the detection of the bounding box `heat = apply_threshold(heatmap/1.5, 1)`
 * I re-iterated the same process for each frame of the video and used the previous heatmap as a base to calculate the current heatmap
 
 The reason why I did so, is that I wanted to eliminate false positives that only appeared for 1 or 2 frames in the video processing: the heatmap keep tracks of the position of the vehicles in the previous frames and sums up to the position in the current frames. The values in the heatmap are divided by two and thresholded at each step to make sure that old values slowly fade away and become less and less important for the bounding box detection.
@@ -332,11 +334,11 @@ def process_single(image):
 	heatmap = apply_threshold(heatmap, 2)
 	
 	labels = label(heat)
-	window_img = draw_boxes(draw_img, hot_windows, color=(255, 138, 0), thick=1)
+	#window_img = draw_boxes(draw_img, hot_windows, color=(255, 138, 0), thick=1)
 	window_img = draw_labeled_bboxes(draw_img, labels, color=(12, 138, 255), thick=2)
 	
 	# keep track of previous heatmaps, in order to be able to eliminate false positives
-	heat = apply_threshold(heatmap/2, 6)
+	heat = apply_threshold(heatmap/1.5, 1)
 	
 	return window_img
 ```

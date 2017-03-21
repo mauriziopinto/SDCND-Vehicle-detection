@@ -60,17 +60,17 @@ Some example images for testing your pipeline on single frames are located in th
 ## [Rubric](https://review.udacity.com/#!/rubrics/513/view) Points
 
 ---
-###Writeup / README
+### Writeup / README
 
-####1. Provide a Writeup / README that includes all the rubric points and how you addressed each one.  You can submit your writeup as markdown or pdf.  [Here](https://github.com/udacity/CarND-Vehicle-Detection/blob/master/writeup_template.md) is a template writeup for this project you can use as a guide and a starting point.  
+#### 1. Provide a Writeup / README that includes all the rubric points and how you addressed each one.  You can submit your writeup as markdown or pdf.  [Here](https://github.com/udacity/CarND-Vehicle-Detection/blob/master/writeup_template.md) is a template writeup for this project you can use as a guide and a starting point.  
 
 The README for this project is available on [Github](https://github.com/mauriziopinto/SDCND-Vehicle-detection/blob/master/README.md)
 
 All the code used is in the file main.py, available at the same Github repository.
 
-###Histogram of Oriented Gradients (HOG)
+### Histogram of Oriented Gradients (HOG)
 
-####1. Explain how (and identify where in your code) you extracted HOG features from the training images.
+#### 1. Explain how (and identify where in your code) you extracted HOG features from the training images.
 
 The HOG features are extracted in the `get_hog_features` function:
 
@@ -141,7 +141,7 @@ hog3 = get_hog_features(ch3, orient, pix_per_cell, cell_per_block, feature_vec=F
 Images are first converted from the RGB colorspace to the YCrCb one and then the HOG features extraction is applied to the entire image (once for each channel). This choice improved the overall performances of the application, because it avoided to extract HOG features for all of the small windows created during the sliding window stage.
 
 
-####2. Explain how you settled on your final choice of HOG parameters.
+#### 2. Explain how you settled on your final choice of HOG parameters.
 
 There are many parameters that can influence the HOG feature extraction:
 
@@ -159,7 +159,7 @@ There are many parameters that can influence the HOG feature extraction:
 I tried many combinations on the video "test_video.mp4" and selected a combination of parameters that provide sufficiently good results for that video. I then used the same parameters for the project video.
 
 
-####3. Describe how (and identify where in your code) you trained a classifier using your selected HOG features (and color features if you used them).
+#### 3. Describe how (and identify where in your code) you trained a classifier using your selected HOG features (and color features if you used them).
 
 A MLP classifier model is built in the `train()` function:
 
@@ -242,9 +242,9 @@ Notes:
 * MLPClassifier proved to be a good trade-off between number of false positives and performances
 * the model and the scaler function are persisted to disk, to be used for the prediction stage (`python main.py --video` or `python main.py --images`)
 
-###Sliding Window Search
+### Sliding Window Search
 
-####1. Describe how (and identify where in your code) you implemented a sliding window search.  How did you decide what scales to search and how much to overlap windows?
+#### 1. Describe how (and identify where in your code) you implemented a sliding window search.  How did you decide what scales to search and how much to overlap windows?
 
 I actually have two versions of this functionality in my code, but I only use the one that provides better performances.
 
@@ -281,7 +281,7 @@ hot_windows.extend(detect_vehicles(image, 2.5))
 
 
 
-####2. Show some examples of test images to demonstrate how your pipeline is working.  What did you do to optimize the performance of your classifier?
+#### 2. Show some examples of test images to demonstrate how your pipeline is working.  What did you do to optimize the performance of your classifier?
 
 Before applying my pipeline to the videos, I tried it on the test images. Here are the resulting images:
 
@@ -297,12 +297,12 @@ Before applying my pipeline to the videos, I tried it on the test images. Here a
 
 ### Video Implementation
 
-####1. Provide a link to your final video output.  Your pipeline should perform reasonably well on the entire project video (somewhat wobbly or unstable bounding boxes are ok as long as you are identifying the vehicles most of the time with minimal false positives.)
+#### 1. Provide a link to your final video output.  Your pipeline should perform reasonably well on the entire project video (somewhat wobbly or unstable bounding boxes are ok as long as you are identifying the vehicles most of the time with minimal false positives.)
 
 Project's video result is available at this [link](./out_project_video.mp4)
 
 
-####2. Describe how (and identify where in your code) you implemented some kind of filter for false positives and some method for combining overlapping bounding boxes.
+#### 2. Describe how (and identify where in your code) you implemented some kind of filter for false positives and some method for combining overlapping bounding boxes.
 
 I used the approach suggested during the Udacity course and I added something very naive to keep track of the heatmap over time:
 
@@ -356,9 +356,9 @@ Some test videos are available:
 
 ---
 
-###Discussion
+### Discussion
 
-####1. Briefly discuss any problems / issues you faced in your implementation of this project.  Where will your pipeline likely fail?  What could you do to make it more robust?
+#### 1. Briefly discuss any problems / issues you faced in your implementation of this project.  Where will your pipeline likely fail?  What could you do to make it more robust?
 
 Some considerations:
 
